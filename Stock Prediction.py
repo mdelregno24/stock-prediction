@@ -9,6 +9,15 @@ from yfinance import Ticker
 
 
 def construct_input(dataset, n_back=10, dropnan=True):
+    """
+    This function takes in a dataset and two optional parameters, n_back and dropnan. It shifts the values in the
+    dataset and returns a new dataset with the shifted values. If dropnan is True, it also removes any rows with
+    missing values (NaN) from the returned dataset.
+    :param dataset: the input dataset
+    :param n_back: determines the number of time steps to shift the data by
+    :param dropnan: determines whether or not to drop rows with NaN (Not a Number) values
+    :return:
+    """
     data = dataset.values.astype('float32')
     columns = [x.lower() for x in dataset.columns.values]
     n_vars = 1 if type(data) is list else data.shape[1]
@@ -34,6 +43,11 @@ def construct_input(dataset, n_back=10, dropnan=True):
 
 
 def plot(data):
+    """
+    This function creates a dropdown menu for the user to select a parameter from a list of column names in a
+    DataFrame, and plots a line chart of the selected parameter.
+    :param data: input data to be plotted
+    """
     metrics = list(data.columns.values)
     metrics.remove('Dividends')
     metrics.remove('Stock Splits')
@@ -53,12 +67,25 @@ def plot(data):
 
 @st.cache
 def get_base64_of_bin_file(bin_file):
+    """
+    This function takes in a parameter called bin_file, which is the file path of a binary file. It opens the file in
+    binary read mode, reads the data in the file, and assigns it to the variable data. It then encodes the data as a
+    base64 string and returns the decoded string.
+    :param bin_file: file to convert in base64
+    :return: the base64 encoding of the file
+    """
     with open(bin_file, 'rb') as f:
         data = f.read()
     return base64.b64encode(data).decode()
 
 
 def set_png_as_page_bg(png_file):
+    """
+    This function sets a specified image as the background image for a page by encoding the image data as a base64
+    string and marking down the resulting string as unsafe HTML.
+    It also sets the background color for certain elements to white.
+    :param png_file: the image to set as the background
+    """
     bin_str = get_base64_of_bin_file(png_file)
     page_bg_img = '''
         <style>
@@ -79,11 +106,15 @@ def set_png_as_page_bg(png_file):
         ''' % bin_str
 
     st.markdown(page_bg_img, unsafe_allow_html=True)
-    return
 
 
 @st.cache
 def load_data():
+    """
+    This function loads and filters data from a Wikipedia page, returning a DataFrame with only the rows for 'AAPL',
+    'MSFT', and 'IBM'.
+    :return: the resulting DataFrame
+    """
     components = pd.read_html('https://en.wikipedia.org/wiki/List_of_S%26P_500_companies#S&P_500_component_stocks')[0]
     components = components.drop('SEC filings', axis=1).set_index('Symbol')
     mask = components.index.isin(['AAPL', 'MSFT', 'IBM'])
@@ -92,12 +123,30 @@ def load_data():
 
 @st.cache
 def load_quotes(asset):
+    """
+    This function takes in a parameter called asset and uses it to create a Ticker object from the yfinance library.
+    It then calls the history method on the Ticker object to retrieve the historical data for the asset, using the
+    'max' period to retrieve all available data. It then returns the data as a DataFrame. This function is used to
+    retrieve historical data for a given asset.
+    :param asset: asset to retreive the historical data from
+    :return: the data retrieved
+    """
     data = Ticker(asset)
     data = data.history(period='max')
     return data
 
 
 def handle_predict(model_name, asset, data):
+    """
+    This function takes in three parameters: model_name, asset, and data. It loads a model from a file using the joblib.
+    load function, drops certain columns from the data DataFrame, reorders the columns, shifts the values in the data
+    using the construct_input function, and finally uses the loaded model to predict a value using the shifted data.
+    It returns the predicted value.
+    :param model_name: name of the model that performs the prediction
+    :param asset: asset to predict
+    :param data: data of the asset to predict
+    :return: the predicted value
+    """
     model = joblib.load('models/' + asset + '_' + model_name + '.joblib')
     dataset = data.drop(columns=['Dividends', 'Stock Splits'])
     dataset = dataset[-11:]
