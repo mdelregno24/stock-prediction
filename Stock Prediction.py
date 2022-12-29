@@ -51,7 +51,6 @@ def plot(data):
         width=650,
         pan_zoom='minimap')
 
-
 @st.cache
 def get_base64_of_bin_file(bin_file):
     with open(bin_file, 'rb') as f:
@@ -63,7 +62,7 @@ def set_png_as_page_bg(png_file):
     bin_str = get_base64_of_bin_file(png_file)
     page_bg_img = '''
         <style>
-        body {
+        .appview-container {
             background-image: url("data:image/png;base64,%s");
             background-size: cover;
         }
@@ -114,7 +113,7 @@ def main():
     set_png_as_page_bg('media/bg2.png')
     components = load_data()
 
-    header_image = Image.open('media/bull&bear.jpeg')
+    header_image = Image.open('media/bull&bear.png')
     bear = Image.open('media/bear.png').resize((150, 150))
     bull = Image.open('media/bull.png').resize((150, 150))
     st.image(header_image, use_column_width=True)
@@ -132,7 +131,7 @@ def main():
                                  format_func=label)
 
     title.title(components.loc[asset].Security)
-    st.table(components.loc[asset])
+    st.table(components.loc[asset].astype(str))
 
     data = load_quotes(asset).dropna()
     st.sidebar.subheader("Select Period")
