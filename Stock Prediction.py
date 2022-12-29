@@ -3,6 +3,7 @@ import pandas as pd
 import base64
 import plost
 import streamlit as st
+from PIL import Image
 from pandas import DataFrame, concat
 from yfinance import Ticker
 
@@ -90,7 +91,7 @@ def load_data():
     return components[mask]
 
 
-@st.cache(ignore_hash=True)
+@st.cache
 def load_quotes(asset):
     data = Ticker(asset)
     data = data.history(period='max')
@@ -112,6 +113,11 @@ def handle_predict(model_name, asset, data):
 def main():
     set_png_as_page_bg('media/bg2.png')
     components = load_data()
+
+    header_image = Image.open('media/bull&bear.jpeg')
+    bear = Image.open('media/bear.png').resize((150, 150))
+    bull = Image.open('media/bull.png').resize((150, 150))
+    st.image(header_image, use_column_width=True)
 
     title = st.empty()
     st.sidebar.title("Options")
@@ -142,8 +148,10 @@ def main():
 
     dict_model_name = {'Light GBM Regressor': 'LGBMRegressor', 'XGBoost Regressor': 'XGBRegressor'}
     model_name = st.sidebar.selectbox('Click below to select the oracle',
-                                      ['Light GBM Regressor ' + asset, 'XGBoost Regressor ' + asset,
-                                       'XGBoost Regressor Generic', 'Light GBM Regressor Generic'])
+                                      ['Light GBM Regressor ' + asset, 'Light GBM Regressor Generic',
+                                       'XGBoost Regressor ' + asset, 'XGBoost Regressor Generic', ])
+
+    init_asset = asset
 
     asset = "whole" if "Generic" in model_name else asset
     truncate = len('Generic') if model_name.endswith('Generic') else len(asset)
@@ -155,6 +163,20 @@ def main():
         with st.spinner("Please wait..."):
             predict = handle_predict(dict_model_name[model_name], asset, data)
         st.success(f'The predicted closing price for the selected market will be {predict:.5f}')
+        col1, col2, col3 = st.columns([8.5, 6, 7])
+
+        with col1:
+            st.write("")
+
+        if predict >= data.tail(1)['Close'].values[0]:
+            with col2:
+                st.image(bull)
+        else:
+            with col2:
+                st.image(bear)
+
+        with col3:
+            st.write("")
 
     stat_check = st.sidebar.checkbox('View statistics')
     quotes_check = st.sidebar.checkbox('View quotes')
@@ -164,7 +186,7 @@ def main():
         st.table(data[-days[period]:].drop(columns=['Dividends', 'Stock Splits']).describe())
 
     if quotes_check:
-        st.subheader(f'{components.loc[asset]["Security"]} historical data')
+        st.subheader(f'{components.loc[init_asset]["Security"]} historical data')
         st.write(data[-days[period]:].drop(columns=['Dividends', 'Stock Splits']))
 
 
