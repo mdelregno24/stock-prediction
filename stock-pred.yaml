@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: bb-demo
+  name: webapp-deployment
   namespace: default
 spec:
   replicas: 1
@@ -14,14 +14,14 @@ spec:
         bb: web
     spec:
       containers:
-        - name: bb-site
+        - name: webapp-site
           image: lucaalib00/stocks:stock-prediction
           imagePullPolicy: Never
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: bb-entrypoint
+  name: webapp-entrypoint
   namespace: default
 spec:
   type: NodePort

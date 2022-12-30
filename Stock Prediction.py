@@ -159,9 +159,9 @@ def handle_predict(model_name, asset, data):
 
 
 def main():
+    st.set_page_config(page_title="Stock Price Prediction App", page_icon="media/logo.png")
     set_png_as_page_bg('media/bg2.png')
     components = load_data()
-
     header_image = Image.open('media/bull&bear.png')
     bear = Image.open('media/bear.png').resize((150, 150))
     bull = Image.open('media/bull.png').resize((150, 150))
